@@ -1,0 +1,63 @@
+# non-virtual-graph part of Jira mapping
+
+@prefix jira: <http://github.com/jbalint/jira-virtual-graph#> .
+
+########################
+# Properties (alphabetical order)
+
+jira:created a owl:DatatypeProperty.
+jira:description a owl:DatatypeProperty.
+jira:dueDate a owl:DatatypeProperty.
+jira:id a owl:DatatypeProperty.
+jira:inwardName a owl:DatatypeProperty.
+jira:issueType a owl:ObjectProperty.
+jira:linkDestination a owl:ObjectProperty.
+jira:linkName a owl:DatatypeProperty.
+jira:linkSource a owl:ObjectProperty.
+jira:linkType a owl:ObjectProperty.
+jira:name a owl:DatatypeProperty.
+jira:outwardName a owl:DatatypeProperty.
+jira:priority a owl:ObjectProperty.
+jira:resolution a owl:ObjectProperty.
+jira:resolutionDate a owl:DatatypeProperty.
+jira:status a owl:ObjectProperty.
+jira:summary a owl:DatatypeProperty.
+jira:updated a owl:DatatypeProperty.
+
+########################
+# Classes
+
+jira:IssueType a owl:Class
+.
+
+jira:Status a owl:Class
+  rdfs:comment "A status of an issue"
+.
+
+jira:Priority a owl:Class
+  rdfs:comment "A priority of an issue"
+.
+
+jira:Resolution a owl:Class
+  rdfs:comment "A resolution of an issue"
+.
+
+jira:Issue a owl:Class
+  rdfs:comment "A Jira issue"
+.
+
+jira:IssueLink a owl:Class ;
+  rdfs:comment "A link from one issue to another"
+.
+
+jira:RemoteLink a owl:Class ;
+  rdfs:comment "A link from an issue to a remote resource"
+.
+
+jira:hasComment a owl:ObjectProperty ;
+  owl:inverseOf jira:commentIssue
+.
+
+jira:commentIssue a owl:ObjectProperty ;
+  rdfs:comment "Points to the Issue the Comment is made on"
+.

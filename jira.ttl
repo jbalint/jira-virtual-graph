@@ -1,0 +1,100 @@
+# Jira virtual graph for Stardog
+# bin/stardog-admin virtual add jira.properties jira.ttl
+# bin/stardog-admin virtual remove jira
+# bin/stardog query execute -r bs "select * { GRAPH <virtual://jira> { ?x a jira:Issue } }"
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix jira: <http://github.com/jbalint/jira-virtual-graph#> .
+@prefix sm: <tag:stardog:api:mapping:> .
+
+jira:IssueType{"id"} a jira:IssueType ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:table "issuetype" ;
+  ]
+.
+
+jira:Status{"id"} a jira:Status ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:table "issuestatus" ;
+  ]
+.
+
+jira:Priority{"id"} a jira:Priority ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:table "priority" ;
+  ]
+.
+
+jira:Resolution{"id"} a jira:Resolution ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:table "resolution" ;
+  ]
+.
+
+jira:Issue{"id"} a jira:Issue ;
+  jira:id "{\"id\"}"^^xsd:integer ;
+  jira:summary "{\"summary\"}" ;
+  jira:description "{\"description\"}" ;
+  jira:status jira:Status{"issuestatus"} ;
+  jira:issueType jira:IssueType{"issuetype"} ;
+  jira:priority jira:Priority{"priority"} ;
+  jira:created "{\"created\"}"^^xsd:dateTime ;
+  jira:dueDate "{\"duedate\"}"^^xsd:dateTime ;
+  jira:updated "{\"updated\"}"^^xsd:dateTime ;
+  jira:resolutionDate "{\"resolutiondate\"}"^^xsd:dateTime ;
+  jira:resolution jira:Resolution{"resolution"} ;
+  sm:map [
+    sm:table "jiraissue" ;
+  ]
+.
+
+jira:LinkType{"id"} a jira:LinkType ;
+  jira:linkName "{\"linkname\"}" ;
+  jira:inwardName "{\"inward\"}" ;
+  jira:outwardName "{\"outward\"}" ;
+  sm:map [
+    sm:table "issuelinktype"
+  ]
+.
+
+jira:IssueLink{"id"} a jira:IssueLink ;
+  jira:linkType jira:LinkType{"linktype"} ;
+  jira:linkSource jira:Issue{"source"} ;
+  jira:linkDestination jira:Issue{"destination"} ;
+  sm:map [
+    sm:table "issuelink"
+  ]
+.
+
+jira:RemoteLink{"id"} a jira:RemoteLink ;
+  jira:issue jira:Issue{"issueid"} ;
+# TODO, this should become an IRI, not a string
+  jira:remoteUrl "{\"url\"}" ;
+  jira:title "{\"title\"}" ;
+  jira:summary "{\"summary\"}" ;
+  jira:iconUrl "{\"url\"}" ;
+  sm:map [
+    sm:table "remotelink" ;
+  ]
+.
+
+jira:Comment{"id"} a jira:Comment ;
+  jira:commentIssue jira:Issue{"issueid"} ;
+  jira:commentBody "{\"actionbody\"}" ;
+  jira:commentCreateDate "{\"created\"}"^^xsd:dateTime ;
+  jira:commentUpdateDate "{\"updated\"}"^^xsd:dateTime ;
+  sm:map [
+    sm:table "jiraaction"
+  ]
+.
+
+# TODO: worklog, attachment, label
