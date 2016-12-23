@@ -1,7 +1,8 @@
 # Jira virtual graph for Stardog
-# bin/stardog-admin virtual add jira.properties jira.ttl
-# bin/stardog-admin virtual remove jira
-# bin/stardog query execute -r bs "select * { GRAPH <virtual://jira> { ?x a jira:Issue } }"
+# stardog namespace add bs --prefix jira --uri 'http://github.com/jbalint/jira-virtual-graph#'
+# stardog-admin virtual add --overwrite jira.properties jira.ttl
+# stardog-admin virtual remove jira
+# stardog query execute -r bs "select * { GRAPH <virtual://jira> { ?x a jira:Issue } }"
 
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -23,6 +24,20 @@ jira:Status{"id"} a jira:Status ;
     sm:table "issuestatus" ;
   ]
 .
+jira:Status{"id"} a jira:OpenStatus ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:query "select * from issuestatus where id in (3, 10000, 10100, 10200)" ;
+  ]
+.
+jira:Status{"id"} a jira:ClosedStatus ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  sm:map [
+    sm:query "select * from issuestatus where id in (5, 10001)" ;
+  ]
+.
 
 jira:Priority{"id"} a jira:Priority ;
   jira:name "{\"pname\"}" ;
@@ -41,19 +56,32 @@ jira:Resolution{"id"} a jira:Resolution ;
 .
 
 jira:Issue{"id"} a jira:Issue ;
-  jira:id "{\"id\"}"^^xsd:integer ;
-  jira:summary "{\"summary\"}" ;
-  jira:description "{\"description\"}" ;
+  jira:id "{id}"^^xsd:integer ;
+  jira:summary "{summary}" ;
+  jira:description "{description}" ;
   jira:status jira:Status{"issuestatus"} ;
   jira:issueType jira:IssueType{"issuetype"} ;
   jira:priority jira:Priority{"priority"} ;
-  jira:created "{\"created\"}"^^xsd:dateTime ;
-  jira:dueDate "{\"duedate\"}"^^xsd:dateTime ;
-  jira:updated "{\"updated\"}"^^xsd:dateTime ;
-  jira:resolutionDate "{\"resolutiondate\"}"^^xsd:dateTime ;
+  jira:created "{created}"^^xsd:dateTime ;
+  jira:dueDate "{duedate}"^^xsd:date ;
+  jira:updated "{updated}"^^xsd:dateTime ;
+  jira:resolutionDate "{resolutiondate}"^^xsd:dateTime ;
   jira:resolution jira:Resolution{"resolution"} ;
+  jira:issueKey "{p.pkey}-{issuenum}" ;
+  jira:project jira:Project{"project"} ;
+  jira:estimatedTimeSecs "{timeoriginalestimate}"^^xsd:integer ;
+  jira:remainingTimeSecs "{timeestimate}"^^xsd:integer ;
+  jira:loggedTimeSecs "{timespent}"^^xsd:integer ;
   sm:map [
-    sm:table "jiraissue" ;
+    sm:query """
+    select i.id,
+           i.summary, i.description, i.issuestatus, i.issuetype,
+           i.priority, i.created, i.duedate, i.updated, i.resolutiondate, i.resolution,
+           i.project, i.issuenum, p.pkey
+    from jiraissue i
+    inner join project p
+    on i.project = p.id
+    """ ;
   ]
 .
 
@@ -97,4 +125,32 @@ jira:Comment{"id"} a jira:Comment ;
   ]
 .
 
-# TODO: worklog, attachment, label
+jira:Project{"id"} a jira:Project ;
+  jira:name "{\"pname\"}" ;
+  jira:description "{\"description\"}" ;
+  jira:projectKey "{\"originalkey\"}" ;
+  jira:url <{"url"}> ;
+  sm:map [
+    sm:table "project"
+  ]
+.
+
+# jira:Sprint{"id"} a jira:Sprint ;
+#   jira:name "{\"name\"}" ;
+#   sm:map [
+# # TODO need to fix these to be ISO-8601, what about timezone? (guess I'll have to keep it as local time)
+#     sm:query """
+#     select id,
+#            name,
+#            started,
+#            closed,
+#            from_unixtime(complete_date/1000) as complete_date,
+#            from_unixtime(end_date/1000) as end_date,
+#            from_unixtime(start_date/1000) as start_date,
+#            rapid_view_id
+#     from AO_60DB71_SPRINT
+#     """ ;
+#   ]
+# .
+
+# TODO: worklog, attachment

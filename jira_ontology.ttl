@@ -1,6 +1,10 @@
-# non-virtual-graph part of Jira mapping
+# Jira mapping ontology
+
+# $ stardog data remove -g 'tag:ontology' jira-test
+# $ stardog data add -g 'tag:ontology' jira-test ~/sw/java-sw/jira-virtual-graph/jira_ontology.ttl
 
 @prefix jira: <http://github.com/jbalint/jira-virtual-graph#> .
+@prefix rule: <tag:stardog:api:rule:> .
 
 ########################
 # Properties (alphabetical order)
@@ -30,19 +34,19 @@ jira:updated a owl:DatatypeProperty.
 jira:IssueType a owl:Class
 .
 
-jira:Status a owl:Class
+jira:Status a owl:Class ;
   rdfs:comment "A status of an issue"
 .
 
-jira:Priority a owl:Class
+jira:Priority a owl:Class ;
   rdfs:comment "A priority of an issue"
 .
 
-jira:Resolution a owl:Class
+jira:Resolution a owl:Class ;
   rdfs:comment "A resolution of an issue"
 .
 
-jira:Issue a owl:Class
+jira:Issue a owl:Class ;
   rdfs:comment "A Jira issue"
 .
 
@@ -54,6 +58,10 @@ jira:RemoteLink a owl:Class ;
   rdfs:comment "A link from an issue to a remote resource"
 .
 
+jira:Sprint a owl:Class ;
+  rdfs:comment "A sprint" ;
+.
+
 jira:hasComment a owl:ObjectProperty ;
   owl:inverseOf jira:commentIssue
 .
@@ -61,3 +69,67 @@ jira:hasComment a owl:ObjectProperty ;
 jira:commentIssue a owl:ObjectProperty ;
   rdfs:comment "Points to the Issue the Comment is made on"
 .
+
+jira:issueKey a owl:DatatypeProperty, owl:InverseFunctionalProperty ;
+  rdfs:comment "The issue key is the canonical identifier for a Jira issue. e.g. PROJ-1234" ;
+.
+
+jira:status a owl:FunctionalProperty ;
+  rdfs:comment "The status of an issue" ;
+.
+
+### None of this works because the "instances" are local, not in the
+### remote db
+
+jira:ClosedStatus a owl:Class .
+  # Canceled
+  jira:Status5 a jira:ClosedStatus.
+  # Closed - unused
+  #jira:Status6 a jira:ClosedStatus.
+  # Done
+  jira:Status10001 a jira:ClosedStatus.
+
+jira:ClosedIssue a owl:Class ;
+  owl:intersectionOf (
+    jira:Issue
+    [ a owl:restriction ;
+      owl:onProperty jira:status ;
+      owl:someValuesFrom jira:ClosedStatus ]
+  )
+.
+
+jira:OpenStatus a owl:Class .
+  # Open - unused
+  #jira:Status1 a jira:OpenStatus.
+  # In Progress
+  jira:Status3 a jira:OpenStatus.
+  # Reopened - unused
+  #jira:Status4 a jira:OpenStatus.
+  # Waiting
+  jira:Status10000 a jira:OpenStatus.
+  # Backlog
+  jira:Status10100 a jira:OpenStatus.
+  # Selected for Development - unused
+  #jira:Status10101 a jira:OpenStatus.
+  # To Do
+  jira:Status10200 a jira:OpenStatus.
+
+jira:OpenIssue a owl:Class ;
+  owl:intersectionOf (
+    jira:Issue
+    [ a owl:restriction ;
+      owl:onProperty jira:status ;
+      owl:someValuesFrom jira:OpenStatus ]
+  )
+.
+
+[] a rule:SPARQLRule ;
+  rule:content """
+    IF {
+      ?i a jira:Issue ;
+        jira:estimatedTimeSecs ?secs.
+      BIND (?secs / 60 as ?hours)
+    }
+    THEN {
+      ?i jira:estimatedTime ?hours
+    }""" .
