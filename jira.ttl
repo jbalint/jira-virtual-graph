@@ -35,7 +35,11 @@ jira:Status{ID} a jira:ClosedStatus ;
   jira:name "{pname}" ;
   jira:description "{DESCRIPTION}" ;
   sm:map [
-    sm:query "select * from issuestatus where id in (5, 10001)" ;
+    sm:query """
+select *
+from issuestatus
+where id in (5, 10001)
+""" ;
   ]
 .
 
@@ -109,8 +113,9 @@ jira:IssueLink{ID} a jira:IssueLink ;
 
 jira:RemoteLink{ID} a jira:RemoteLink ;
   jira:issue jira:Issue{ISSUEID} ;
-# TODO, this should become an IRI, not a string (#3509)
-  jira:remoteUrl "{URL}" ;
+# TODO, this should become an IRI, not a string (#3509), #7555
+#  jira:remoteUrl "{URL}" ;
+  jira:remoteUrl <{URL}> ;
   jira:title "{TITLE}" ;
   jira:summary "{SUMMARY}" ;
   jira:iconUrl "{ICONURL}" ;
