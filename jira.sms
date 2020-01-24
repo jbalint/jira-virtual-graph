@@ -1,0 +1,251 @@
+PREFIX jira: <http://github.com/jbalint/jira-virtual-graph#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sm: <tag:stardog:api:mapping:>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# Resolution
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`resolution`
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:Resolution
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Resolution{ID}") AS ?subject)
+}
+
+;
+
+# IssueType
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`issuetype`
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:IssueType
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#IssueType{ID}") AS ?subject)
+}
+
+;
+
+# OpenStatus
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`issuestatus`
+  WHERE `ID` = 3 OR `ID` = 10000 OR `ID` = 10100 OR `ID` = 10200
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:OpenStatus
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Status{ID}") AS ?subject)
+}
+
+;
+
+# Status
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`issuestatus`
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:Status
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Status{ID}") AS ?subject)
+}
+
+;
+
+# RemoteLink
+MAPPING
+FROM SQL {
+  SELECT `ID`, `ISSUEID`, `TITLE`, `SUMMARY`, `URL`, `ICONURL`
+  FROM `jiradb`.`remotelink`
+}
+TO {
+  ?subject jira:iconUrl ?ICONURL .
+  ?subject jira:issue ?issue .
+  ?subject jira:remoteUrl ?remoteUrl .
+  ?subject jira:summary ?SUMMARY .
+  ?subject jira:title ?TITLE .
+  ?subject rdf:type jira:RemoteLink
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{ISSUEID}") AS ?issue)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#RemoteLink{ID}") AS ?subject)
+  BIND(template("{URL}") AS ?remoteUrl)
+}
+
+;
+
+# labels
+MAPPING
+FROM SQL {
+  SELECT `ISSUE`, `LABEL`
+  FROM `jiradb`.`label`
+}
+TO {
+  ?subject jira:label ?LABEL
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{ISSUE}") AS ?subject)
+}
+
+;
+
+# Comment
+MAPPING
+FROM SQL {
+  SELECT `ID`, `issueid`, `actionbody`, `CREATED`, `UPDATED`
+  FROM `jiradb`.`jiraaction`
+}
+TO {
+  ?subject jira:commentBody ?actionbody .
+  ?subject jira:commentCreateDate ?commentCreateDate_dateTime .
+  ?subject jira:commentIssue ?commentIssue .
+  ?subject jira:commentUpdateDate ?commentUpdateDate_dateTime .
+  ?subject rdf:type jira:Comment
+} WHERE {
+  BIND(StrDt(?CREATED, xsd:dateTime) AS ?commentCreateDate_dateTime)
+  BIND(StrDt(?UPDATED, xsd:dateTime) AS ?commentUpdateDate_dateTime)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Comment{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{issueid}") AS ?commentIssue)
+}
+
+;
+
+# Project
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `URL`, `DESCRIPTION`, `ORIGINALKEY`
+  FROM `jiradb`.`project`
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject jira:projectKey ?ORIGINALKEY .
+  ?subject jira:url ?url .
+  ?subject rdf:type jira:Project
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Project{ID}") AS ?subject)
+  BIND(template("{URL}") AS ?url)
+}
+
+;
+
+# Priority
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`priority`
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:Priority
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Priority{ID}") AS ?subject)
+}
+
+;
+
+# ClosedStatus
+MAPPING
+FROM SQL {
+  SELECT `ID`, `pname`, `DESCRIPTION`
+  FROM `jiradb`.`issuestatus`
+  WHERE `ID` = 5 OR `ID` = 10001
+}
+TO {
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:name ?pname .
+  ?subject rdf:type jira:ClosedStatus
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Status{ID}") AS ?subject)
+}
+
+;
+
+# LinkType
+MAPPING
+FROM SQL {
+  SELECT `ID`, `LINKNAME`, `INWARD`, `OUTWARD`
+  FROM `jiradb`.`issuelinktype`
+}
+TO {
+  ?subject jira:inwardName ?INWARD .
+  ?subject jira:linkName ?LINKNAME .
+  ?subject jira:outwardName ?OUTWARD .
+  ?subject rdf:type jira:LinkType
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#LinkType{ID}") AS ?subject)
+}
+
+;
+
+# Issue
+MAPPING
+FROM SQL {
+  SELECT `jiraissue`.`ID`, `jiraissue`.`issuenum`, `jiraissue`.`PROJECT`, `jiraissue`.`issuetype`, `jiraissue`.`SUMMARY`, `jiraissue`.`DESCRIPTION`, `jiraissue`.`PRIORITY`, `jiraissue`.`RESOLUTION`, `jiraissue`.`issuestatus`, `jiraissue`.`CREATED`, `jiraissue`.`UPDATED`, `jiraissue`.`DUEDATE`, `jiraissue`.`RESOLUTIONDATE`,
+  concat(project.pkey, '-', issuenum) as issueKey
+  FROM `jiradb`.`jiraissue`
+  INNER JOIN `jiradb`.`project` ON `jiraissue`.`PROJECT` = `project`.`ID`
+}
+TO {
+  ?subject jira:created ?created_dateTime .
+  ?subject jira:description ?DESCRIPTION .
+  ?subject jira:dueDate ?dueDate_date .
+  ?subject jira:id ?id_integer .
+  ?subject jira:issueKey ?issueKey .
+  ?subject jira:issueType ?issueType .
+  ?subject jira:priority ?priority .
+  ?subject jira:project ?project .
+  ?subject jira:resolution ?resolution .
+  ?subject jira:resolutionDate ?resolutionDate_dateTime .
+  ?subject jira:status ?status .
+  ?subject jira:summary ?SUMMARY .
+  ?subject jira:updated ?updated_dateTime .
+  ?subject rdf:type jira:Issue
+} WHERE {
+  BIND(StrDt(?CREATED, xsd:dateTime) AS ?created_dateTime)
+  BIND(StrDt(?DUEDATE, xsd:date) AS ?dueDate_date)
+  BIND(StrDt(?ID, xsd:integer) AS ?id_integer)
+  BIND(StrDt(?RESOLUTIONDATE, xsd:dateTime) AS ?resolutionDate_dateTime)
+  BIND(StrDt(?UPDATED, xsd:dateTime) AS ?updated_dateTime)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#IssueType{issuetype}") AS ?issueType)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Priority{PRIORITY}") AS ?priority)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Project{PROJECT}") AS ?project)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Resolution{RESOLUTION}") AS ?resolution)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Status{issuestatus}") AS ?status)
+}
+
+;
+
+# IssueLink
+MAPPING
+FROM SQL {
+  SELECT `ID`, `LINKTYPE`, `SOURCE`, `DESTINATION`
+  FROM `jiradb`.`issuelink`
+}
+TO {
+  ?subject jira:linkDestination ?linkDestination .
+  ?subject jira:linkSource ?linkSource .
+  ?subject jira:linkType ?linkType .
+  ?subject rdf:type jira:IssueLink
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#IssueLink{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{DESTINATION}") AS ?linkDestination)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{SOURCE}") AS ?linkSource)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#LinkType{LINKTYPE}") AS ?linkType)
+}
