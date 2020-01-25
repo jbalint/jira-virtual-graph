@@ -249,3 +249,67 @@ TO {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{SOURCE}") AS ?linkSource)
   BIND(template("http://github.com/jbalint/jira-virtual-graph#LinkType{LINKTYPE}") AS ?linkType)
 }
+
+;
+
+# InsightSchema
+MAPPING
+FROM SQL {
+  SELECT
+   `CREATED`
+  ,`DESCRIPTION`
+  ,`ID`
+  ,`NAME`
+  ,`OBJECT_SCHEMA_KEY`
+  ,`UPDATED`
+  FROM `AO_8542F1_IFJ_OBJ_SCHEMA`
+}
+TO {
+  ?subject a jira:InsightSchema ;
+  jira:insightSchemaName ?NAME ;
+  jira:insightSchemaKey ?OBJECT_SCHEMA_KEY ;
+  jira:insightSchemaDescription ?DESCRIPTION ;
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightSchema{ID}") AS ?subject)
+}
+
+;
+
+# InsightObjectType
+MAPPING
+FROM SQL {
+  SELECT
+   `ID`
+  ,`NAME`
+  ,`OBJECT_SCHEMA_ID`
+  FROM `AO_8542F1_IFJ_OBJ_TYPE`
+}
+TO {
+  ?subject a jira:InsightObjectType ;
+  jira:insightObjectTypeName ?NAME ;
+  jira:insightObjectTypeSchema ?schema
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObjectType{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightSchema{OBJECT_SCHEMA_ID}") AS ?schema)
+}
+
+;
+
+# InsightObject
+MAPPING
+FROM SQL {
+  SELECT
+   `ID`
+  ,`LABEL`
+  ,`OBJECT_TYPE_ID`
+  FROM `AO_8542F1_IFJ_OBJ`
+}
+TO {
+  ?subject a jira:InsightObject ;
+  jira:insightObjectId ?ID ;
+  jira:insightObjectLabel ?LABEL ;
+  jira:insightObjectType ?objectType
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObject{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObjectType{OBJECT_TYPE_ID}") AS ?objectType)
+}
