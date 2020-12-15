@@ -98,6 +98,7 @@ FROM SQL {
 TO {
   ?subject jira:label ?LABEL
 } WHERE {
+  # TODO : !!! WHERE IS THE LABEL
   BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{ISSUE}") AS ?subject)
 }
 
@@ -190,7 +191,6 @@ TO {
 } WHERE {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#LinkType{ID}") AS ?subject)
 }
-
 ;
 
 # Issue
@@ -229,7 +229,6 @@ TO {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#Resolution{RESOLUTION}") AS ?resolution)
   BIND(template("http://github.com/jbalint/jira-virtual-graph#Status{issuestatus}") AS ?status)
 }
-
 ;
 
 # IssueLink
@@ -249,7 +248,6 @@ TO {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{SOURCE}") AS ?linkSource)
   BIND(template("http://github.com/jbalint/jira-virtual-graph#LinkType{LINKTYPE}") AS ?linkType)
 }
-
 ;
 
 # InsightSchema
@@ -272,7 +270,6 @@ TO {
 } WHERE {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightSchema{ID}") AS ?subject)
 }
-
 ;
 
 # InsightObjectType
@@ -292,7 +289,6 @@ TO {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObjectType{ID}") AS ?subject)
   BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightSchema{OBJECT_SCHEMA_ID}") AS ?schema)
 }
-
 ;
 
 # InsightObject
@@ -312,4 +308,38 @@ TO {
 } WHERE {
   BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObject{ID}") AS ?subject)
   BIND(template("http://github.com/jbalint/jira-virtual-graph#InsightObjectType{OBJECT_TYPE_ID}") AS ?objectType)
+}
+;
+
+# Custom field
+MAPPING
+FROM SQL {
+  SELECT `ID`, `cfname`
+  FROM `jiradb`.`customfield`
+}
+TO {
+  ?subject jira:name ?cfname .
+  ?subject rdf:type jira:CustomField
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#CustomField{ID}") AS ?subject)
+}
+;
+
+# Custom field value
+# TODO: we should support a way to get the values from the FIELDTYPE
+MAPPING
+FROM SQL {
+  SELECT `ID`, `ISSUE`, `CUSTOMFIELD`, `NUMBERVALUE`, `DATEVALUE`
+  FROM `jiradb`.`customfieldvalue`
+}
+TO {
+  ?subject jira:customField ?customField .
+  ?subject jira:issue ?issue .
+  # TODO: this property shouldn't exist
+  ?subject jira:customNumberValue "?NUMBERVALUE"^^xsd:decimal .
+  ?subject jira:customDateTimeValue "?DATEVALUE"^^xsd:dateTime .
+} WHERE {
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#CustomFieldValue{ID}") AS ?subject)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#CustomField{CUSTOMFIELD}") AS ?customField)
+  BIND(template("http://github.com/jbalint/jira-virtual-graph#Issue{ISSUE}") AS ?issue)
 }
